@@ -1,26 +1,23 @@
 import mongoose from "mongoose";
 
-const taskSchema = new mongoose.Schema(
+const projectSchema = new mongoose.Schema(
   {
-    title: {
+    name: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 120,
     },
     description: {
       type: String,
       trim: true,
       default: "",
+      maxlength: 5000,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    },
-    projectId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Project",
-      default: null,
     },
   },
   {
@@ -30,6 +27,12 @@ const taskSchema = new mongoose.Schema(
   },
 );
 
-const Task = mongoose.model("Task", taskSchema);
+projectSchema.virtual("tasks", {
+  ref: "Task",
+  localField: "_id",
+  foreignField: "projectId",
+});
 
-export default Task;
+const Project = mongoose.model("Project", projectSchema);
+
+export default Project;
