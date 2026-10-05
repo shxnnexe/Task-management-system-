@@ -2,6 +2,7 @@ import './style.css';
 import { login, register } from './api.js';
 
 const app = document.querySelector('#app');
+let visibleTasks = [];
 const readSession = () => {
   try {
     return JSON.parse(sessionStorage.getItem('task-session') || 'null');
@@ -68,6 +69,10 @@ function renderTasks(session) {
           <p class="form-message" id="task-message" role="status" aria-live="polite"></p>
           <button class="primary-button" type="submit">Create task</button>
         </form>
+        <section class="task-list-panel" aria-labelledby="task-list-heading">
+          <h2 id="task-list-heading">Your tasks</h2>
+          <ul id="task-list" class="task-list"></ul>
+        </section>
         <p class="auth-copy">Signed in as ${escapeHtml(session.user.username)}.</p>
       </section>
       <footer class="page-footer">Task Management System <span>FE1-05</span></footer>
@@ -76,8 +81,58 @@ function renderTasks(session) {
   document.querySelector('#sign-out').addEventListener('click', signOut);
   document.querySelector('#task-form').addEventListener('submit', (event) => {
     event.preventDefault();
-    document.querySelector('#task-message').textContent = 'Task API is not connected yet.';
+    const form = event.currentTarget;
+    visibleTasks.unshift({
+      id: String(Date.now()),
+      title: form.elements.title.value.trim(),
+      description: form.elements.description.value.trim(),
+      projectId: form.elements.projectId.value.trim(),
+    });
+    form.reset();
+    renderTaskList();
   });
+  document.querySelector('#task-list').addEventListener('click', handleTaskAction);
+  renderTaskList();
+}
+
+function renderTaskList() {
+  const list = document.querySelector('#task-list');
+  if (!list) return;
+  list.innerHTML = visibleTasks.length
+    ? visibleTasks.map((task) => `
+      <li class="task-item" data-task-id="${escapeHtml(task.id)}">
+        <div class="task-details">
+          <strong>${escapeHtml(task.title)}</strong>
+          <span>${escapeHtml(task.description || 'No description')}</span>
+          <small>Project ${escapeHtml(task.projectId)}</small>
+        </div>
+        <div class="task-actions">
+          <button type="button" data-action="edit">Edit</button>
+          <button type="button" data-action="delete">Delete</button>
+        </div>
+      </li>
+    `).join('')
+    : '<li class="empty-tasks">No tasks yet. Create one above.</li>';
+}
+
+function handleTaskAction(event) {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+  const item = button.closest('[data-task-id]');
+  const task = visibleTasks.find((entry) => entry.id === item.dataset.taskId);
+  if (!task) return;
+
+  if (button.dataset.action === 'delete') {
+    visibleTasks = visibleTasks.filter((entry) => entry.id !== task.id);
+    renderTaskList();
+    return;
+  }
+
+  const title = window.prompt('Update task title', task.title);
+  if (title?.trim()) {
+    task.title = title.trim();
+    renderTaskList();
+  }
 }
 
 function escapeHtml(value) {

@@ -140,6 +140,83 @@ button.nav-action {
   font-size: 13px;
 }
 
+.task-list-panel {
+  margin-top: 32px;
+  border-top: 1px solid rgb(24 59 53 / 12%);
+  padding-top: 22px;
+}
+
+.task-list-panel h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.task-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e1e5dc;
+  border-radius: 10px;
+  padding: 13px;
+}
+
+.task-details {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.task-details strong,
+.task-details span,
+.task-details small {
+  overflow-wrap: anywhere;
+}
+
+.task-details span,
+.task-details small,
+.empty-tasks {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.task-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.task-actions button {
+  border: 1px solid #d9dfd7;
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: white;
+  cursor: pointer;
+}
+
+.task-actions button:last-child {
+  color: #a54335;
+}
+
+.empty-tasks {
+  padding: 12px 0;
+}
+
+@media (max-width: 520px) {
+  .task-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .launch-screen {
   display: flex;
   min-height: 100vh;
