@@ -8,7 +8,6 @@ Backend API for creating, updating, deleting, and viewing projects and tasks.
 - MongoDB
 
 ## Setup
-
 ```sh
 npm install
 ```
@@ -38,6 +37,18 @@ The API listens on port 3000. The Vite website runs on port 5173 and proxies
 
 Register or sign in before creating projects and tasks. Passwords are hashed
 before storage, and login returns a signed JWT.
+
+## Authentication API
+
+Register and login accept a username and a password of at least six characters.
+Usernames are trimmed and lowercased, registration assigns the `user` role, and
+passwords are hashed before storage.
+
+- `POST /api/register` — create an account with `username` and `password`.
+- `POST /api/login` — authenticate and receive the user and a one-day JWT.
+
+Successful responses use `{ "success": true, "message": ..., "data": ... }`.
+Errors use `{ "success": false, "error": { "message": ... } }`.
 
 ## Task API
 
