@@ -76,3 +76,10 @@ Successful responses use `{ "success": true, "data": ... }`. Project responses
 include the Mongoose `id` and a `tasks` array. Error responses use
 `{ "success": false, "error": { "message": ... } }`; validation errors also
 include field-level `details`.
+
+## Frontend tickets
+
+Frontend ticket work (FE1 and FE2) is integrated in the React/Vite app under
+`frontend/`. The app includes registration and login, project creation and
+listing, task creation and management, search and filters, loading/error states,
+and responsive navigation.
