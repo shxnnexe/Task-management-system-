@@ -13,10 +13,18 @@ Backend API for creating, updating, deleting, and viewing projects and tasks.
 npm install
 ```
 
-Copy `.env.example` to `.env` and set `MONGODB_URI` to the MongoDB connection
-string before starting the server. The task model stores `createdBy` as a
-required MongoDB ObjectId reference to a `User` document. Authentication and the
-user model are not part of this task feature.
+Create the local environment file from the example and set `MONGODB_URI` to the
+MongoDB connection string:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+The example URI connects to a local MongoDB server at
+`mongodb://127.0.0.1:27017/task-management-system`. Ensure MongoDB is running
+before starting the API. The task model stores `createdBy` as a required MongoDB
+ObjectId reference to a `User` document. Authentication and the user model are
+not part of this task feature.
 
 ## Development
 
