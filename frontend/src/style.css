@@ -44,6 +44,18 @@ input {
   font-weight: 600;
 }
 
+.workspace-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.workspace-nav a {
+  color: var(--forest);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 button.nav-action {
   border: 0;
   padding: 8px 0;
@@ -88,11 +100,16 @@ button.nav-action {
   font-weight: 600;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form textarea {
   width: 100%;
   border: 1px solid #d9dfd7;
   border-radius: 9px;
   padding: 12px;
+}
+
+.auth-form textarea {
+  resize: vertical;
 }
 
 .auth-form input:focus {

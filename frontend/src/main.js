@@ -19,19 +19,64 @@ function renderWorkspace(session) {
           <span class="wordmark-mark" aria-hidden="true">T</span>
           <span>Task Management</span>
         </a>
-        <button class="nav-action" id="sign-out" type="button">Sign out</button>
+        <nav class="workspace-nav" aria-label="Workspace navigation">
+          <a href="#tasks">Tasks</a>
+          <button class="nav-action" id="sign-out" type="button">Sign out</button>
+        </nav>
       </header>
       <section class="auth-card">
         <p class="eyebrow">YOU ARE SIGNED IN</p>
         <h1>Welcome, ${escapeHtml(session.user.username)}</h1>
-        <p class="auth-copy">Your account is ready. Task management is coming next.</p>
+        <p class="auth-copy">Your account is ready. Open Tasks to add work to your workspace.</p>
       </section>
       <footer class="page-footer">Task Management System <span>FE1-04</span></footer>
     </main>
   `;
-  document.querySelector('#sign-out').addEventListener('click', () => {
-    sessionStorage.removeItem('task-session');
-    renderAuth();
+  document.querySelector('#sign-out').addEventListener('click', signOut);
+}
+
+function signOut() {
+  sessionStorage.removeItem('task-session');
+  window.location.hash = '';
+  renderAuth();
+}
+
+function renderTasks(session) {
+  app.innerHTML = `
+    <main class="auth-layout">
+      <header class="masthead">
+        <a class="wordmark" href="/" aria-label="Task Management System home">
+          <span class="wordmark-mark" aria-hidden="true">T</span>
+          <span>Task Management</span>
+        </a>
+        <nav class="workspace-nav" aria-label="Workspace navigation">
+          <a href="#tasks" aria-current="page">Tasks</a>
+          <button class="nav-action" id="sign-out" type="button">Sign out</button>
+        </nav>
+      </header>
+      <section class="auth-card task-card">
+        <p class="eyebrow">YOUR WORKSPACE</p>
+        <h1>Tasks</h1>
+        <p class="auth-copy">Create a task and assign it to one of your projects.</p>
+        <form id="task-form" class="auth-form">
+          <label for="task-title">Task title</label>
+          <input id="task-title" name="title" maxlength="200" required />
+          <label for="task-description">Description <span class="optional">(optional)</span></label>
+          <textarea id="task-description" name="description" maxlength="5000" rows="3"></textarea>
+          <label for="task-project">Project ID</label>
+          <input id="task-project" name="projectId" required />
+          <p class="form-message" id="task-message" role="status" aria-live="polite"></p>
+          <button class="primary-button" type="submit">Create task</button>
+        </form>
+        <p class="auth-copy">Signed in as ${escapeHtml(session.user.username)}.</p>
+      </section>
+      <footer class="page-footer">Task Management System <span>FE1-05</span></footer>
+    </main>
+  `;
+  document.querySelector('#sign-out').addEventListener('click', signOut);
+  document.querySelector('#task-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    document.querySelector('#task-message').textContent = 'Task API is not connected yet.';
   });
 }
 
@@ -44,7 +89,8 @@ function escapeHtml(value) {
 function renderAuth() {
   const session = readSession();
   if (session?.token && session.user?.id && session.user?.username) {
-    renderWorkspace(session);
+    if (window.location.hash === '#tasks') renderTasks(session);
+    else renderWorkspace(session);
     return;
   }
 
