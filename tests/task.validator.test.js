@@ -29,3 +29,20 @@ test("update task accepts editable fields but rejects empty or unknown input", (
     false,
   );
 });
+
+test("tasks may be assigned to a valid project or unassigned", () => {
+  const projectId = "abcdef0123456789abcdef01";
+  assert.equal(
+    createTaskSchema.safeParse({
+      title: "Grouped task",
+      createdBy: "0123456789abcdef01234567",
+      projectId,
+    }).success,
+    true,
+  );
+  assert.equal(updateTaskSchema.safeParse({ projectId }).success, true);
+  assert.deepEqual(updateTaskSchema.parse({ projectId: null }), {
+    projectId: null,
+  });
+  assert.equal(updateTaskSchema.safeParse({ projectId: "invalid" }).success, false);
+});

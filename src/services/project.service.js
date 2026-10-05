@@ -5,3 +5,6 @@ export const createProject = async (projectData) => {
   const project = await Project.create(projectData);
   return project.populate("tasks");
 };
+
+export const listProjects = () =>
+  Project.find().populate("tasks").sort({ createdAt: -1 });
