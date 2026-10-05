@@ -12,6 +12,10 @@ npm install
 npm run dev
 ```
 
+Run the backend API on port `3000` in a second terminal. The Vite server proxies
+`/api` requests to it. Open the local URL printed by Vite (normally
+`http://localhost:5173`).
+
 Use `npm run build` to create a production build in `frontend/dist/`.
 
 ## Frontend tickets

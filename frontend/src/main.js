@@ -1,5 +1,5 @@
 import './style.css';
-import { login, register } from './api.js';
+import { createTask, deleteTask, getTasks, login, register, updateTask } from './api.js';
 
 const app = document.querySelector('#app');
 let visibleTasks = [];
@@ -79,20 +79,44 @@ function renderTasks(session) {
     </main>
   `;
   document.querySelector('#sign-out').addEventListener('click', signOut);
-  document.querySelector('#task-form').addEventListener('submit', (event) => {
+  document.querySelector('#task-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
-    visibleTasks.unshift({
-      id: String(Date.now()),
-      title: form.elements.title.value.trim(),
-      description: form.elements.description.value.trim(),
-      projectId: form.elements.projectId.value.trim(),
-    });
-    form.reset();
-    renderTaskList();
+    const button = form.querySelector('button[type="submit"]');
+    const message = document.querySelector('#task-message');
+    button.disabled = true;
+    message.textContent = '';
+    try {
+      await createTask({
+        title: form.elements.title.value.trim(),
+        description: form.elements.description.value.trim(),
+        projectId: form.elements.projectId.value.trim(),
+        createdBy: session.user.id,
+      });
+      form.reset();
+      await loadTasks();
+    } catch (error) {
+      message.textContent = error instanceof Error ? error.message : 'Unable to create task.';
+    } finally {
+      button.disabled = false;
+    }
   });
   document.querySelector('#task-list').addEventListener('click', handleTaskAction);
-  renderTaskList();
+  void loadTasks();
+}
+
+async function loadTasks() {
+  const list = document.querySelector('#task-list');
+  const message = document.querySelector('#task-message');
+  if (!list) return;
+  list.innerHTML = '<li class="empty-tasks">Loading tasks...</li>';
+  try {
+    visibleTasks = await getTasks();
+    renderTaskList();
+  } catch (error) {
+    list.innerHTML = '<li class="empty-tasks">Tasks could not be loaded.</li>';
+    if (message) message.textContent = error instanceof Error ? error.message : 'Unable to load tasks.';
+  }
 }
 
 function renderTaskList() {
@@ -123,15 +147,30 @@ function handleTaskAction(event) {
   if (!task) return;
 
   if (button.dataset.action === 'delete') {
-    visibleTasks = visibleTasks.filter((entry) => entry.id !== task.id);
-    renderTaskList();
+    void removeTask(task);
     return;
   }
 
   const title = window.prompt('Update task title', task.title);
-  if (title?.trim()) {
-    task.title = title.trim();
-    renderTaskList();
+  if (title?.trim()) void saveTask(task, title.trim());
+}
+
+async function saveTask(task, title) {
+  try {
+    await updateTask(task.id, { title });
+    await loadTasks();
+  } catch (error) {
+    document.querySelector('#task-message').textContent = error instanceof Error ? error.message : 'Unable to update task.';
+  }
+}
+
+async function removeTask(task) {
+  if (!window.confirm(`Delete "${task.title}"?`)) return;
+  try {
+    await deleteTask(task.id);
+    await loadTasks();
+  } catch (error) {
+    document.querySelector('#task-message').textContent = error instanceof Error ? error.message : 'Unable to delete task.';
   }
 }
 

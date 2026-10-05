@@ -39,3 +39,29 @@ export function login(username, password) {
     body: JSON.stringify({ username, password }),
   });
 }
+
+export async function getTasks() {
+  const tasks = await request('/tasks');
+  if (!Array.isArray(tasks)) throw new Error('The server returned an invalid task list.');
+  return tasks;
+}
+
+export function createTask(input) {
+  return request('/tasks', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateTask(id, input) {
+  return request(`/tasks/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteTask(id) {
+  return request(`/tasks/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
