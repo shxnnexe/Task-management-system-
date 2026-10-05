@@ -64,8 +64,8 @@ function renderTasks(session) {
           <input id="task-title" name="title" maxlength="200" required />
           <label for="task-description">Description <span class="optional">(optional)</span></label>
           <textarea id="task-description" name="description" maxlength="5000" rows="3"></textarea>
-          <label for="task-project">Project ID</label>
-          <input id="task-project" name="projectId" required />
+          <label for="task-project">Project ID <span class="optional">(optional)</span></label>
+          <input id="task-project" name="projectId" />
           <p class="form-message" id="task-message" role="status" aria-live="polite"></p>
           <button class="primary-button" type="submit">Create task</button>
         </form>
@@ -90,7 +90,7 @@ function renderTasks(session) {
       await createTask({
         title: form.elements.title.value.trim(),
         description: form.elements.description.value.trim(),
-        projectId: form.elements.projectId.value.trim(),
+        projectId: form.elements.projectId.value.trim() || null,
         createdBy: session.user.id,
       });
       form.reset();
