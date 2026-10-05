@@ -28,6 +28,10 @@ export const errorHandler = (error, _req, res, next) => {
         fieldError.message,
       ]),
     );
+  } else if (Array.isArray(error.errors) && error.statusCode === 400) {
+    status = 400;
+    message = error.message;
+    details = error.errors;
   } else if (Number.isInteger(error.statusCode) && error.statusCode >= 400) {
     status = error.statusCode;
     message = error.message;

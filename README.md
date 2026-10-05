@@ -13,8 +13,8 @@ Backend API for creating, updating, deleting, and viewing projects and tasks.
 npm install
 ```
 
-Create the local environment file from the example and set `MONGODB_URI` to the
-MongoDB connection string:
+Create the local environment file from the example, then set `JWT_SECRET` to a
+random secret of at least 32 characters:
 
 ```powershell
 Copy-Item .env.example .env
@@ -22,15 +22,22 @@ Copy-Item .env.example .env
 
 The example URI connects to a local MongoDB server at
 `mongodb://127.0.0.1:27017/task-management-system`. Ensure MongoDB is running
-before starting the API. The task model stores `createdBy` as a required MongoDB
-ObjectId reference to a `User` document. Authentication and the user model are
-not part of this task feature.
+before starting the API.
 
 ## Development
 
+Start the API and the website in separate terminals from the repository root:
+
 ```sh
 npm run dev
+npm run dev:web
 ```
+
+The API listens on port 3000. The Vite website runs on port 5173 and proxies
+`/api` requests to the API. Open `http://localhost:5173` in a browser.
+
+Register or sign in before creating projects and tasks. Passwords are hashed
+before storage, and login returns a signed JWT.
 
 ## Task API
 
