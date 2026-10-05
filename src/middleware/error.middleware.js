@@ -18,10 +18,10 @@ export const errorHandler = (error, _req, res, next) => {
     message = "Invalid JSON request body";
   } else if (error.name === "CastError") {
     status = 400;
-    message = "Invalid task ID";
+    message = "Invalid resource ID";
   } else if (error.name === "ValidationError") {
     status = 400;
-    message = "Task validation failed";
+    message = "Resource validation failed";
     details = Object.fromEntries(
       Object.entries(error.errors).map(([field, fieldError]) => [
         field,

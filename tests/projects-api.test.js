@@ -23,3 +23,19 @@ test("project creation returns a JSON validation error when name is missing", as
   assert.equal(body.error.message, "Validation failed");
   assert.ok(body.error.details.name);
 });
+
+test("invalid project IDs return a JSON 400 response", async (t) => {
+  const server = app.listen(0);
+  await once(server, "listening");
+  t.after(() => server.close());
+
+  const response = await fetch(
+    `http://127.0.0.1:${server.address().port}/api/projects/not-an-id`,
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    success: false,
+    error: { message: "Invalid resource ID" },
+  });
+});

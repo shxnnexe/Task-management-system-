@@ -1,6 +1,6 @@
 # Task Management System
 
-Backend API for creating, updating, deleting, and viewing tasks.
+Backend API for creating, updating, deleting, and viewing projects and tasks.
 
 ## Requirements
 
@@ -27,10 +27,26 @@ npm run dev
 ## Task API
 
 - `POST /api/tasks` — create a task (`title`, optional `description`, and
-  `createdBy` user ID in the JSON body).
+  `createdBy` user ID in the JSON body; optional `projectId` groups it under a
+  project).
 - `GET /api/tasks` — list tasks, newest first.
-- `PUT /api/tasks/:id` — update a task's `title` and/or `description`.
+- `PUT /api/tasks/:id` — update a task's `title`, `description`, and/or
+  `projectId`. Set `projectId` to `null` to remove the task from a project.
 - `DELETE /api/tasks/:id` — delete a task.
 
-Successful responses use `{ "success": true, "data": ... }`. Error responses use
-`{ "success": false, "error": { "message": ... } }`.
+## Project API
+
+- `POST /api/projects` — create a project (`name`, required `createdBy` user
+  ID, and optional `description`).
+- `GET /api/projects` — list projects, newest first, including each project's
+  related `tasks`.
+- `GET /api/projects/:id` — fetch one project with its related `tasks`.
+- `PUT` or `PATCH /api/projects/:id` — update the project's `name` and/or
+  `description`.
+- `DELETE /api/projects/:id` — delete a project that has no tasks. Returns
+  `409` while tasks are assigned, to avoid removing their parent project.
+
+Successful responses use `{ "success": true, "data": ... }`. Project responses
+include the Mongoose `id` and a `tasks` array. Error responses use
+`{ "success": false, "error": { "message": ... } }`; validation errors also
+include field-level `details`.

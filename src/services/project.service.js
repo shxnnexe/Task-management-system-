@@ -30,5 +30,5 @@ export const deleteProject = async (id) => {
     throw error;
   }
 
-  return Project.findByIdAndDelete(id);
+  return Project.findByIdAndDelete(id).populate("tasks");
 };
