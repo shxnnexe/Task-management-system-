@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useNavigate } from "react-router-dom";
-import { ApiError, getProjects, loginUser, postProject, postTask, registerUser } from "./api";
+import { ApiError, deleteTask, getProjects, loginUser, postProject, postTask, registerUser, updateTask } from "./api";
 import { normalizedStatus, type TaskFilter } from "./task-utils";
 import type { AuthUser, Project } from "./types";
 
@@ -323,6 +323,34 @@ function TasksPage({ user }: { user: AuthUser | null }) {
     }
   }
 
+  async function handleEditTask(task: { id: string; title: string; description?: string }) {
+    const titleInput = window.prompt("Update task title", task.title);
+    if (titleInput === null) return;
+    const title = titleInput.trim();
+    if (!title) {
+      setError("Task title cannot be empty.");
+      return;
+    }
+
+    try {
+      await updateTask(task.id, { title });
+      await refreshProjects();
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Unable to update the task.");
+    }
+  }
+
+  async function handleDeleteTask(task: { id: string; title: string }) {
+    if (!window.confirm(`Delete "${task.title}"?`)) return;
+
+    try {
+      await deleteTask(task.id);
+      await refreshProjects();
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Unable to delete the task.");
+    }
+  }
+
   return (
     <main className="app-shell">
       <header className="page-header">
@@ -386,6 +414,12 @@ function TasksPage({ user }: { user: AuthUser | null }) {
                 <span className={`task-status-label task-label-${normalizedStatus(task.status)}`}>
                   {normalizedStatus(task.status).replace("-", " ")}
                 </span>
+                {user && (
+                  <div className="task-actions">
+                    <button className="secondary-button" type="button" onClick={() => void handleEditTask(task)}>Edit</button>
+                    <button className="secondary-button task-delete-button" type="button" onClick={() => void handleDeleteTask(task)}>Delete</button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

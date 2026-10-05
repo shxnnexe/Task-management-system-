@@ -182,3 +182,20 @@ export async function postTask(input: {
   if (!task) throw new ApiError("The server returned an invalid task response.");
   return task;
 }
+
+export async function updateTask(
+  id: string,
+  updates: { title?: string; description?: string },
+): Promise<Task> {
+  const result = await request(`/tasks/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(updates),
+  });
+  const task = parseTask(result);
+  if (!task) throw new ApiError("The server returned an invalid task response.");
+  return task;
+}
+
+export async function deleteTask(id: string): Promise<void> {
+  await request(`/tasks/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
