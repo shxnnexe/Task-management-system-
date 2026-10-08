@@ -2,6 +2,15 @@ import { FormEvent, useEffect, useState } from "react";
 import { ApiError, getProjects, postProject } from "./api";
 import type { Project } from "./types";
 
+type TaskFilter = "all" | "todo" | "in-progress" | "completed";
+
+function normalizedStatus(status?: string): Exclude<TaskFilter, "all"> {
+  const value = status?.trim().toLowerCase().replace(/[\s_]+/g, "-");
+  if (value === "done" || value === "complete" || value === "completed") return "completed";
+  if (value === "in-progress" || value === "inprogress") return "in-progress";
+  return "todo";
+}
+
 export default function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [name, setName] = useState("");
@@ -9,6 +18,8 @@ export default function App() {
   const [formError, setFormError] = useState("");
   const [requestError, setRequestError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -20,6 +31,23 @@ export default function App() {
       });
     return () => controller.abort();
   }, []);
+
+  const normalizedQuery = searchTerm.trim().toLocaleLowerCase();
+  const filteredProjects = projects.flatMap((project) => {
+    const projectMatches = normalizedQuery.length > 0
+      && `${project.name} ${project.description ?? ""}`.toLocaleLowerCase().includes(normalizedQuery);
+    const matchingTasks = (project.tasks ?? []).filter((task) => {
+      const matchesStatus = taskFilter === "all" || normalizedStatus(task.status) === taskFilter;
+      const matchesQuery = !normalizedQuery
+        || projectMatches
+        || `${task.title} ${task.description ?? ""}`.toLocaleLowerCase().includes(normalizedQuery);
+      return matchesStatus && matchesQuery;
+    });
+    const matchesProject = normalizedQuery ? projectMatches : taskFilter === "all";
+    return matchesProject || matchingTasks.length > 0
+      ? [{ ...project, tasks: matchingTasks }]
+      : [];
+  });
 
   async function handleCreateProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -107,8 +135,32 @@ export default function App() {
               <h2>Your projects <span className="project-total">{projects.length}</span></h2>
             </div>
           </div>
+          <div className="project-filters">
+            <label className="search-field">
+              <span className="search-icon" aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search projects or tasks"
+                aria-label="Search projects or tasks"
+              />
+            </label>
+            <label className="filter-field">
+              <span className="visually-hidden">Filter tasks by status</span>
+              <select value={taskFilter} onChange={(event) => setTaskFilter(event.target.value as TaskFilter)}>
+                <option value="all">All task statuses</option>
+                <option value="todo">To do</option>
+                <option value="in-progress">In progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+          </div>
+          {filteredProjects.length === 0 ? (
+            <p className="filter-empty">No projects or tasks match these filters.</p>
+          ) : (
           <div className="project-grid">
-            {projects.map((project) => (
+            {filteredProjects.map((project) => (
               <article className="project-card" key={project.id}>
                 <div className="project-card-top">
                   <span className="project-icon" aria-hidden="true">{project.name.charAt(0).toUpperCase()}</span>
@@ -134,6 +186,7 @@ export default function App() {
               </article>
             ))}
           </div>
+          )}
         </section>
       )}
       <footer className="app-footer">A little structure goes a long way.</footer>
