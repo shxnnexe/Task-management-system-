@@ -3,6 +3,9 @@
 
 A responsive project and task organizer built with React, TypeScript, and Vite.
 
+The navigation includes project and task views. The Login destination is a
+placeholder until an authentication backend is available.
+
 ## Getting started
 
 ```sh

@@ -1,17 +1,10 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { BrowserRouter, Link, Navigate, NavLink, Route, Routes } from "react-router-dom";
 import { ApiError, getProjects, postProject } from "./api";
+import { normalizedStatus, type TaskFilter } from "./task-utils";
 import type { Project } from "./types";
 
-type TaskFilter = "all" | "todo" | "in-progress" | "completed";
-
-function normalizedStatus(status?: string): Exclude<TaskFilter, "all"> {
-  const value = status?.trim().toLowerCase().replace(/[\s_]+/g, "-");
-  if (value === "done" || value === "complete" || value === "completed") return "completed";
-  if (value === "in-progress" || value === "inprogress") return "in-progress";
-  return "todo";
-}
-
-export default function App() {
+function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -227,5 +220,134 @@ export default function App() {
       </section>
       <footer className="app-footer">A little structure goes a long way.</footer>
     </main>
+  );
+}
+
+function Navigation() {
+  return (
+    <nav className="site-nav" aria-label="Main navigation">
+      <div className="site-nav-inner">
+        <Link className="brand" to="/projects" aria-label="Taskflow home">
+          <span className="brand-mark" aria-hidden="true">t</span>
+          <span>taskflow</span>
+        </Link>
+        <div className="nav-links">
+          <NavLink className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} to="/login">Login</NavLink>
+          <NavLink className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} to="/tasks">Tasks</NavLink>
+          <NavLink className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} to="/projects">Projects</NavLink>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+function TasksPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const refreshProjects = useCallback(async (signal?: AbortSignal) => {
+    setIsLoading(true);
+    setError("");
+    try {
+      setProjects(await getProjects(signal));
+    } catch (requestError) {
+      if (requestError instanceof Error && requestError.name === "AbortError") return;
+      setError(requestError instanceof ApiError ? requestError.message : "Unable to load tasks.");
+    } finally {
+      if (!signal?.aborted) setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void refreshProjects(controller.signal);
+    return () => controller.abort();
+  }, [refreshProjects]);
+
+  const tasks = projects.flatMap((project) =>
+    (project.tasks ?? []).map((task) => ({ ...task, projectId: project.id, projectName: project.name })),
+  );
+
+  return (
+    <main className="app-shell">
+      <header className="page-header">
+        <p className="eyebrow">YOUR WORKSPACE</p>
+        <h1>Tasks</h1>
+        <p className="page-description">A clear view of the work inside your projects.</p>
+      </header>
+      <section className="task-page-list" aria-live="polite" aria-busy={isLoading}>
+        {isLoading ? (
+          <div className="state-card loading-state" role="status">
+            <span className="loading-spinner" aria-hidden="true" />
+            <span>Loading your tasks...</span>
+          </div>
+        ) : error ? (
+          <div className="state-card error-state" role="alert">
+            <div><h3>Tasks couldn’t be loaded</h3><p>{error}</p></div>
+            <button className="secondary-button" type="button" onClick={() => void refreshProjects()}>Try again</button>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="state-card empty-state">
+            <span className="empty-icon" aria-hidden="true">✓</span>
+            <h3>No tasks yet</h3>
+            <p>Tasks added to your projects will show up here.</p>
+            <Link className="text-link" to="/projects">Browse projects</Link>
+          </div>
+        ) : (
+          <ul className="task-page-grid">
+            {tasks.map((task) => (
+              <li className="task-page-card" key={`${task.projectId}-${task.id}`}>
+                <span className={`task-status status-${normalizedStatus(task.status)}`} aria-hidden="true" />
+                <div className="task-page-content">
+                  <strong>{task.title}</strong>
+                  <span>{task.projectName}</span>
+                  {task.description && <p>{task.description}</p>}
+                </div>
+                <span className={`task-status-label task-label-${normalizedStatus(task.status)}`}>
+                  {normalizedStatus(task.status).replace("-", " ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <footer className="app-footer">A little structure goes a long way.</footer>
+    </main>
+  );
+}
+
+function LoginPage() {
+  return (
+    <main className="app-shell">
+      <header className="page-header">
+        <p className="eyebrow">YOUR WORKSPACE</p>
+        <h1>Welcome back</h1>
+        <p className="page-description">Sign-in is not connected to an authentication service yet.</p>
+      </header>
+      <section className="panel login-panel">
+        <span className="heading-mark" aria-hidden="true">↗</span>
+        <h2>Authentication coming soon</h2>
+        <p>This project currently supports the projects API only. Your tasks and projects remain available without signing in.</p>
+        <Link className="primary-button text-button" to="/projects">Continue to projects <span aria-hidden="true">→</span></Link>
+      </section>
+    </main>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="app-layout">
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<Navigate to="/projects" replace />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/projects" replace />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
