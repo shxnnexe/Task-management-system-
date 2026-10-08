@@ -74,16 +74,40 @@ export default function App() {
       </section>
 
       {projects.length > 0 && (
-        <section className="local-projects" aria-live="polite">
-          <h2>Created this session</h2>
-          <ul>
+        <section className="project-list" aria-live="polite">
+          <div className="list-heading">
+            <div>
+              <p className="eyebrow">IN YOUR WORKSPACE</p>
+              <h2>Your projects <span className="project-total">{projects.length}</span></h2>
+            </div>
+          </div>
+          <div className="project-grid">
             {projects.map((project) => (
-              <li key={project.id}>
-                <strong>{project.name}</strong>
-                {project.description && <span>{project.description}</span>}
-              </li>
+              <article className="project-card" key={project.id}>
+                <div className="project-card-top">
+                  <span className="project-icon" aria-hidden="true">{project.name.charAt(0).toUpperCase()}</span>
+                  <span className="task-count">{project.tasks?.length ?? 0} tasks</span>
+                </div>
+                <h3>{project.name}</h3>
+                <p className="project-description">{project.description || "No description added."}</p>
+                <div className="project-tasks">
+                  <h4>Tasks</h4>
+                  {project.tasks && project.tasks.length > 0 ? (
+                    <ul>
+                      {project.tasks.map((task) => (
+                        <li key={task.id}>
+                          <span className={`task-status status-${task.status ?? "todo"}`} aria-hidden="true" />
+                          <span>{task.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="no-tasks">No tasks in this project yet.</p>
+                  )}
+                </div>
+              </article>
             ))}
-          </ul>
+          </div>
         </section>
       )}
       <footer className="app-footer">A little structure goes a long way.</footer>
