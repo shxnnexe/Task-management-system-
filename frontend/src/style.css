@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap');
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #183b35;
+  background: #f2f1e9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-weight: 400;
+
+  --forest: #183b35;
+  --paper: #f2f1e9;
+  --muted: #727c72;
+  --coral: #c85e42;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+.launch-screen {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 88% 88%, rgb(200 94 66 / 11%), transparent 35%),
+    linear-gradient(135deg, #f5f4ed, var(--paper));
+}
+
+.masthead {
+  display: flex;
+  min-height: 82px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(22px, 6vw, 88px);
+  border-bottom: 1px solid rgb(24 59 53 / 12%);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--forest);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.wordmark-mark {
+  display: grid;
+  width: 30px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--forest);
+  color: var(--paper);
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+}
+
+.build-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 7px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #4e8971;
+}
+
+.welcome {
+  width: min(100% - 44px, 900px);
+  margin: auto;
+  padding: 90px 0 105px;
+  animation: arrive 650ms ease-out both;
+}
+
+.eyebrow,
+.ticket-note {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(54px, 9vw, 104px);
+  font-weight: 500;
+  line-height: 0.99;
+}
+
+h1 em {
+  color: var(--coral);
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+}
+
+.welcome-copy {
+  margin: 28px 0 0;
+  color: #58665e;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.welcome-rule {
+  display: flex;
+  width: min(100%, 460px);
+  height: 1px;
+  margin: 52px 0 19px;
+  background: rgb(24 59 53 / 17%);
+}
+
+.welcome-rule span {
+  width: 52px;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--coral);
+}
+
+.ticket-note {
+  margin: 0;
+  font-size: 10px;
+}
+
+.ticket-note span {
+  padding: 0 5px;
+  color: var(--coral);
+}
+
+.page-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px clamp(22px, 6vw, 88px);
+  border-top: 1px solid rgb(24 59 53 / 12%);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.page-footer span {
+  color: var(--forest);
+  font-weight: 600;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 520px) {
+  .masthead {
+    min-height: 70px;
+  }
+
+  .build-label {
+    font-size: 10px;
+  }
+
+  .welcome {
+    padding: 76px 0 84px;
+  }
+
+  .page-footer {
+    gap: 12px;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
