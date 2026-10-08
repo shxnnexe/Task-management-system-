@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { ApiError, getProjects, postProject } from "./api";
 import type { Project } from "./types";
 
@@ -16,21 +16,31 @@ export default function App() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [formError, setFormError] = useState("");
-  const [requestError, setRequestError] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [projectsError, setProjectsError] = useState("");
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
 
+  const refreshProjects = useCallback(async (signal?: AbortSignal) => {
+    setIsLoadingProjects(true);
+    setProjectsError("");
+    try {
+      setProjects(await getProjects(signal));
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      setProjectsError(error instanceof ApiError ? error.message : "Unable to load projects.");
+    } finally {
+      if (!signal?.aborted) setIsLoadingProjects(false);
+    }
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
-    getProjects(controller.signal)
-      .then(setProjects)
-      .catch((error: unknown) => {
-        if (error instanceof Error && error.name === "AbortError") return;
-        setRequestError(error instanceof ApiError ? error.message : "Unable to load projects.");
-      });
+    void refreshProjects(controller.signal);
     return () => controller.abort();
-  }, []);
+  }, [refreshProjects]);
 
   const normalizedQuery = searchTerm.trim().toLocaleLowerCase();
   const filteredProjects = projects.flatMap((project) => {
@@ -58,7 +68,7 @@ export default function App() {
     }
 
     setIsSaving(true);
-    setRequestError("");
+    setCreateError("");
     try {
       const createdProject = await postProject({
         name: trimmedName,
@@ -69,7 +79,7 @@ export default function App() {
       setDescription("");
       setFormError("");
     } catch (error) {
-      setRequestError(error instanceof ApiError ? error.message : "Unable to create the project.");
+      setCreateError(error instanceof ApiError ? error.message : "Unable to create the project.");
     } finally {
       setIsSaving(false);
     }
@@ -93,7 +103,7 @@ export default function App() {
         </div>
 
         <form className="project-form" onSubmit={handleCreateProject} noValidate>
-          {requestError && <p className="request-error" role="alert">{requestError}</p>}
+          {createError && <p className="request-error" role="alert">{createError}</p>}
           <label htmlFor="project-name">Project name <span aria-hidden="true">*</span></label>
           <input
             id="project-name"
@@ -127,14 +137,36 @@ export default function App() {
         </form>
       </section>
 
-      {projects.length > 0 && (
-        <section className="project-list" aria-live="polite">
-          <div className="list-heading">
-            <div>
-              <p className="eyebrow">IN YOUR WORKSPACE</p>
-              <h2>Your projects <span className="project-total">{projects.length}</span></h2>
-            </div>
+      <section className="project-list" aria-live="polite" aria-busy={isLoadingProjects}>
+        <div className="list-heading">
+          <div>
+            <p className="eyebrow">IN YOUR WORKSPACE</p>
+            <h2>Your projects <span className="project-total">{projects.length}</span></h2>
           </div>
+        </div>
+        {isLoadingProjects ? (
+          <div className="state-card loading-state" role="status">
+            <span className="loading-spinner" aria-hidden="true" />
+            <span>Loading your projects...</span>
+          </div>
+        ) : projectsError ? (
+          <div className="state-card error-state" role="alert">
+            <div>
+              <h3>Projects couldn’t be loaded</h3>
+              <p>{projectsError}</p>
+            </div>
+            <button className="secondary-button" type="button" onClick={() => void refreshProjects()}>
+              Try again
+            </button>
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="state-card empty-state">
+            <span className="empty-icon" aria-hidden="true">✳</span>
+            <h3>No projects yet</h3>
+            <p>Create your first project above to start organizing your tasks.</p>
+          </div>
+        ) : (
+          <>
           <div className="project-filters">
             <label className="search-field">
               <span className="search-icon" aria-hidden="true">⌕</span>
@@ -157,38 +189,42 @@ export default function App() {
             </label>
           </div>
           {filteredProjects.length === 0 ? (
-            <p className="filter-empty">No projects or tasks match these filters.</p>
+            <div className="state-card filter-empty">
+              <h3>No matching results</h3>
+              <p>Try another search term or task status.</p>
+            </div>
           ) : (
-          <div className="project-grid">
-            {filteredProjects.map((project) => (
-              <article className="project-card" key={project.id}>
-                <div className="project-card-top">
-                  <span className="project-icon" aria-hidden="true">{project.name.charAt(0).toUpperCase()}</span>
-                  <span className="task-count">{project.tasks?.length ?? 0} tasks</span>
-                </div>
-                <h3>{project.name}</h3>
-                <p className="project-description">{project.description || "No description added."}</p>
-                <div className="project-tasks">
-                  <h4>Tasks</h4>
-                  {project.tasks && project.tasks.length > 0 ? (
-                    <ul>
-                      {project.tasks.map((task) => (
-                        <li key={task.id}>
-                          <span className={`task-status status-${task.status ?? "todo"}`} aria-hidden="true" />
-                          <span>{task.title}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="no-tasks">No tasks in this project yet.</p>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
+            <div className="project-grid">
+              {filteredProjects.map((project) => (
+                <article className="project-card" key={project.id}>
+                  <div className="project-card-top">
+                    <span className="project-icon" aria-hidden="true">{project.name.charAt(0).toUpperCase()}</span>
+                    <span className="task-count">{project.tasks?.length ?? 0} tasks</span>
+                  </div>
+                  <h3>{project.name}</h3>
+                  <p className="project-description">{project.description || "No description added."}</p>
+                  <div className="project-tasks">
+                    <h4>Tasks</h4>
+                    {project.tasks && project.tasks.length > 0 ? (
+                      <ul>
+                        {project.tasks.map((task) => (
+                          <li key={task.id}>
+                            <span className={`task-status status-${normalizedStatus(task.status)}`} aria-hidden="true" />
+                            <span>{task.title}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="no-tasks">No tasks in this project yet.</p>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
           )}
-        </section>
-      )}
+          </>
+        )}
+      </section>
       <footer className="app-footer">A little structure goes a long way.</footer>
     </main>
   );
