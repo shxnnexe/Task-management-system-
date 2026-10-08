@@ -162,4 +162,23 @@ h2 { margin-bottom: 0; font-size: 19px; letter-spacing: -.025em; }
   .primary-button { min-height: 44px; }
   .project-grid { grid-template-columns: 1fr; }
   .project-filters { grid-template-columns: 1fr; }
+  .project-list { margin-top: 30px; }
+  .state-card { padding: 17px; }
+}
+
+@media (max-width: 380px) {
+  .app-shell { width: calc(100% - 24px); padding-top: 34px; }
+  .panel { padding: 18px 14px; }
+  .page-header { margin-bottom: 26px; }
+  .error-state { align-items: flex-start; flex-direction: column; }
+  .secondary-button { min-height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
