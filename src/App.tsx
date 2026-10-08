@@ -1,4 +1,5 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { ApiError, getProjects, postProject } from "./api";
 import type { Project } from "./types";
 
 export default function App() {
@@ -6,8 +7,21 @@ export default function App() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [formError, setFormError] = useState("");
+  const [requestError, setRequestError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  function handleCreateProject(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    const controller = new AbortController();
+    getProjects(controller.signal)
+      .then(setProjects)
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setRequestError(error instanceof ApiError ? error.message : "Unable to load projects.");
+      });
+    return () => controller.abort();
+  }, []);
+
+  async function handleCreateProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedName = name.trim();
     if (!trimmedName) {
@@ -15,13 +29,22 @@ export default function App() {
       return;
     }
 
-    setProjects((current) => [
-      ...current,
-      { id: crypto.randomUUID(), name: trimmedName, description: description.trim() },
-    ]);
-    setName("");
-    setDescription("");
-    setFormError("");
+    setIsSaving(true);
+    setRequestError("");
+    try {
+      const createdProject = await postProject({
+        name: trimmedName,
+        description: description.trim(),
+      });
+      setProjects((current) => [createdProject, ...current]);
+      setName("");
+      setDescription("");
+      setFormError("");
+    } catch (error) {
+      setRequestError(error instanceof ApiError ? error.message : "Unable to create the project.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -42,6 +65,7 @@ export default function App() {
         </div>
 
         <form className="project-form" onSubmit={handleCreateProject} noValidate>
+          {requestError && <p className="request-error" role="alert">{requestError}</p>}
           <label htmlFor="project-name">Project name <span aria-hidden="true">*</span></label>
           <input
             id="project-name"
@@ -68,7 +92,9 @@ export default function App() {
           />
           <div className="form-footer">
             <span className="helper-text">Keep related tasks together.</span>
-            <button className="primary-button" type="submit">Create project <span aria-hidden="true">→</span></button>
+            <button className="primary-button" type="submit" disabled={isSaving}>
+              {isSaving ? "Creating..." : "Create project"} <span aria-hidden="true">→</span>
+            </button>
           </div>
         </form>
       </section>

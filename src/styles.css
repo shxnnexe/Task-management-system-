@@ -108,7 +108,9 @@ h2 { margin-bottom: 0; font-size: 19px; letter-spacing: -.025em; }
   transition: background .16s, transform .16s;
 }
 .primary-button:hover { background: #414ab5; transform: translateY(-1px); }
+.primary-button:disabled { opacity: .65; cursor: wait; transform: none; }
 .primary-button:focus-visible { outline: 3px solid #b9bef7; outline-offset: 2px; }
+.request-error { border: 1px solid #f0c4cb; border-radius: 8px; padding: 11px 12px; color: #a72b42; background: #fff5f6; font-size: 13px; }
 
 .project-list { margin-top: 36px; }
 .list-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: 16px; }
