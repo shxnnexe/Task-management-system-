@@ -1,4 +1,5 @@
 const AppError = require("../utils/AppError");
+const { errorResponse } = require("../utils/apiResponse");
 
 const notFound = (req, _res, next) => {
     next(new AppError(`Route not found: ${req.method} ${req.originalUrl}`, 404));
@@ -13,6 +14,10 @@ const errorHandler = (error, _req, res, _next) => {
         statusCode = 400;
         message = "Invalid JSON body";
         errors = null;
+    } else if (error.name === "ValidationError" && error.errors) {
+        statusCode = 400;
+        message = "Validation failed";
+        errors = Object.values(error.errors).map((validationError) => validationError.message);
     } else if (error.code === 11000) {
         statusCode = 409;
         message = "Username is already registered";
@@ -25,10 +30,7 @@ const errorHandler = (error, _req, res, _next) => {
         errors = null;
     }
 
-    res.status(statusCode).json({
-        message,
-        ...(errors && { errors })
-    });
+    res.status(statusCode).json(errorResponse(message, errors));
 };
 
 module.exports = { notFound, errorHandler };

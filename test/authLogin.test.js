@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
+const jwt = require("jsonwebtoken");
 const AppError = require("../src/utils/AppError");
 const { createAuthService } = require("../src/services/authService");
 
@@ -66,4 +67,27 @@ test("rejects login if the JWT secret is not configured", async () => {
         service.login({ username: "sampleuser", password: "secret1" }),
         (error) => error instanceof AppError && error.statusCode === 500
     );
+});
+
+test("issues a verifiable JWT with the user identity and role", async () => {
+    const service = createAuthService({
+        UserModel: {
+            findOne() {
+                return { select: async () => existingUser };
+            }
+        },
+        async comparePassword() {
+            return true;
+        },
+        getJwtSecret: () => "test-secret"
+    });
+
+    const { token } = await service.login({
+        username: "sampleuser",
+        password: "secret1"
+    });
+    const claims = jwt.verify(token, "test-secret");
+
+    assert.equal(claims.sub, "user-id");
+    assert.equal(claims.role, "user");
 });

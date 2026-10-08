@@ -32,7 +32,11 @@ test("registration controller returns a created user", async () => {
     );
 
     assert.equal(res.statusCode, 201);
-    assert.deepEqual(res.body, { message: "Registration successful", user });
+    assert.deepEqual(res.body, {
+        success: true,
+        message: "Registration successful",
+        data: { user }
+    });
 });
 
 test("login controller forwards service errors to error middleware", async () => {

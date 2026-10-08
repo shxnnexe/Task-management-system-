@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
+const bcrypt = require("bcryptjs");
 const AppError = require("../src/utils/AppError");
 const { createAuthService } = require("../src/services/authService");
 
@@ -44,4 +45,25 @@ test("translates duplicate usernames to a conflict error", async () => {
         service.register({ username: "existing", password: "secret1" }),
         (error) => error instanceof AppError && error.statusCode === 409
     );
+});
+
+test("uses bcrypt for registration password hashes", async () => {
+    let createdUser;
+    const service = createAuthService({
+        UserModel: {
+            async create(user) {
+                createdUser = user;
+                return {
+                    _id: { toString: () => "user-id" },
+                    username: user.username,
+                    role: "user"
+                };
+            }
+        }
+    });
+
+    await service.register({ username: "newuser", password: "secret1" });
+
+    assert.notEqual(createdUser.password, "secret1");
+    assert.equal(await bcrypt.compare("secret1", createdUser.password), true);
 });
